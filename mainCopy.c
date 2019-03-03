@@ -190,8 +190,8 @@ void printCoor(char csvfile[], int testc, char *testv[]){	//FIX () ERROR
 			
 			/* Do stuff */
 			int result = testFunction(cells, testc, testv);	//FINISH
-				if (result == 1){
-					cells[11][(int)strlen(cells[11])-2]='/0';
+				if ((result == 1)&&(row != NULL)){
+					cells[11][(int)strlen(cells[11])-2]='\0';
 					printf("%d: (%s, %s)\n",i, cells[10], cells[11]);
 					i++;
 				}
