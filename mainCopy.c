@@ -195,7 +195,7 @@ void printCoor(char csvfile[], int testc, char *testv[]){	//FIX () ERROR
 					cells[11][len-1]='/0';
 					printf("%d: (%s, %s)\n",i, cells[10], cells[11]);
 					i++;
-			}
+				}
 			
 		}
 	
