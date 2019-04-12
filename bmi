@@ -1,0 +1,239 @@
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
+
+#include "bmi.h"
+
+///////////////////////////////////////////////////////////////
+// helper functions
+
+Person *createPerson(char *first, char *last, int height, int weight, Person *nextHeight, Person *nextWeight)
+{
+    Person *ptr=malloc(sizeof(Person));
+    ptr->first=malloc(strlen(first)+1);
+    strcpy(ptr->first, first);
+    ptr->last=malloc(strlen(last)+1);
+    strcpy(ptr->last, last);
+
+    ptr->height=height;
+    ptr->weight=weight;
+
+    ptr->nextHeight=nextHeight;
+    ptr->nextWeight=nextWeight;
+
+    return ptr;
+}
+
+///////////////////////////////////////////////////////////////
+
+int compareWeight(Person *pNew, Person *pExisting);
+
+int compareHeight(Person *pNew, Person *pExisting) {	//DONE
+
+	if (pNew->height > pExisting->height) return -1;
+	if (pNew->height < pExisting->height) return 1;
+	return compareWeight(pNew, pExisting);
+}
+
+int compareWeight(Person *pNew, Person *pExisting) {	//DONE
+
+	if (pNew->weight > pExisting->weight) return 1;
+	if (pNew->weight < pExisting->weight) return -1;
+	return compareHeight(pNew, pExisting);
+}
+
+PersonList *add(PersonList *list, char *first, char *last, int height, int weight) {	//DONE
+	// make sure it does not already exist
+	Person *ptr=search(list, first, last);
+	if (ptr!=NULL) {
+		printf("Error: %s %s already exists in the list\n", first, last);
+		return list;
+	}
+
+	// allocate a new node
+	Person *pNew=createPerson(first, last, height, weight, NULL, NULL);
+
+	//int flag=0;
+	// add it to "headHeightList"
+	if (list->headHeightList==NULL){ 	//case 1 list is empty
+		list->headHeightList=pNew;
+		//return list;
+	}
+
+	else if (compareHeight(pNew, list->headHeightList)<0){ // case 2 add to front
+		pNew->nextHeight=list->headHeightList;
+		list->headHeightList = pNew;
+		//return list;
+	}
+
+	else {
+		for (Person *cur=list->headHeightList; cur!=NULL; cur=cur->nextHeight) {
+
+			if (cur->nextHeight == NULL) {	//case #3: add at end
+				cur->nextHeight=pNew;
+				pNew->nextHeight=NULL;
+				//return list;
+				break;
+			}
+
+			if (compareHeight(pNew, cur->nextHeight)<0){	//case #4: insert between cur and cur->next
+				pNew->nextHeight=cur->nextHeight;
+				cur->nextHeight=pNew;
+				//return list;
+				break;
+			}
+		}
+	}
+
+	//add it to "headWeightList"
+	if (list->headWeightList==NULL){ 	//case 1 list is empty
+		list->headWeightList=pNew;
+		return list;
+	}
+
+	if (compareWeight(pNew, list->headWeightList)<0){ // case 2 add to front
+		pNew->nextWeight=list->headWeightList;
+		list->headWeightList = pNew;
+		return list;
+	}
+
+	for (Person *cur=list->headWeightList; cur!=NULL; cur=cur->nextWeight) {
+
+		if (cur->nextWeight == NULL) {	//case #3: add at end
+			cur->nextWeight=pNew;
+			pNew->nextWeight=NULL;
+			return list;
+		}
+
+		if (compareWeight(pNew, cur->nextWeight)<0){	//case #4: insert between cur and cur->next
+			pNew->nextWeight=cur->nextWeight;
+			cur->nextWeight=pNew;
+			return list;
+		}
+	}
+
+	return list;
+}
+
+int size(PersonList *list) {		// DONE
+	int count=0;
+	for (Person *cur=list->headHeightList; cur!=NULL; cur=cur->nextHeight) {
+		count++;
+	}
+	return count;
+}
+
+void printByHeight(PersonList *list) {		//DONE
+	for (Person *cur=list->headHeightList; cur!=NULL; cur=cur->nextHeight) {
+		printf("%s %s: height=%d, weight=%d \n", cur->first, cur->last, cur->height, cur->weight);
+	}
+}
+
+void printByWeight(PersonList *list) {		//DONE
+	for (Person *cur=list->headWeightList; cur!=NULL; cur=cur->nextWeight) {
+		printf("%s %s: height=%d, weight=%d \n", cur->first, cur->last, cur->height, cur->weight);
+	}
+}
+
+Person *search(PersonList *list, char *first, char *last) {		// DONE
+	for (Person *cur=list->headHeightList; cur!=NULL; cur=cur->nextHeight) {
+        if ((strcmp(cur->first, first)==0)&&((strcmp(cur->last, last)==0))){
+            return cur;
+        }
+    }
+	return NULL;
+}
+
+void updateName(PersonList *list, char *first, char *last, char *newFirst, char *newLast) { 	//DONE
+	Person *ptr=search(list, first, last);
+	if (ptr==NULL){
+		printf("%s %s does not exist", first, last); 
+		return;
+	}
+	ptr->first=newFirst;
+	ptr->last=newLast;
+}
+
+PersonList *removePerson(PersonList *list, char *first, char *last) {
+
+	Person *ptr=search(list, first, last);
+	if (ptr==NULL){
+		printf("%s %s does not exist", first, last); 
+		return list;
+	}
+
+	for (Person *cur=list->headHeightList; cur!=NULL; cur=cur->nextHeight) {
+		if ((cur==list->headHeightList)&&(strcmp(cur->first, first)==0)&&(strcmp(cur->last, last)==0)){		//case 1 delete first
+				// printf("1\n");
+			list->headHeightList=cur->nextHeight;
+			break;
+		}
+		if (cur->nextHeight==NULL){		//case 3 reaches end
+				// printf("2\n");
+				break;
+		}
+		if (cur->nextHeight->nextHeight==NULL){	//case 2 delete last element
+				// printf("3\n");
+			if ((strcmp(cur->nextHeight->first,first)==0)&&(strcmp(cur->nextHeight->last, last)==0)){
+				cur->nextHeight=NULL;
+				break;
+			}
+		}
+		// printf("%s %s111\n", cur->nextHeight->first, cur->nextHeight->last);
+		if ((strcmp(cur->nextHeight->first, first)==0)&&(strcmp(cur->nextHeight->first, first)==0)){	//general delete
+			// printf("hhh00\n");
+			cur->nextHeight=cur->nextHeight->nextHeight;
+			break;
+		}
+	}
+	// printf("height is good");
+	for (Person *cur=list->headWeightList; cur!=NULL; cur=cur->nextWeight) {
+		if ((cur==list->headWeightList)&&(strcmp(cur->first, first)==0)&&(strcmp(cur->last, last)==0)){		//case 1
+			list->headWeightList=cur->nextWeight;
+			return list;
+		}
+		if (cur->nextWeight==NULL){
+			return list;
+		}
+		if (cur->nextWeight->nextWeight==NULL){
+			if ((strcmp(cur->nextWeight->first,first)==0)&&(strcmp(cur->nextWeight->last, last)==0)){
+				cur->nextWeight=NULL;
+				return list;
+			}
+		}
+		// if (cur->nextWeight==NULL){
+		// 	return list;
+		// }
+		if ((strcmp(cur->nextWeight->first, first)==0)&&(strcmp(cur->nextWeight->first, first)==0)){
+			cur->nextWeight=cur->nextWeight->nextWeight;
+			return list;
+		}
+	}
+	return list;
+}
+
+PersonList *updateHeight(PersonList *list, char *first, char *last, int height)
+{ 
+	Person *ptr=search(list, first, last);
+	if (ptr==NULL){
+		printf("%s %s does not exist", first, last); 
+		return list;
+	}
+	int weight=ptr->weight;
+	list=removePerson(list, first, last);
+	list=add(list, first, last, height, weight);
+	return list;
+}
+
+PersonList *updateWeight(PersonList *list, char *first, char *last, int weight)
+{ 
+	Person *ptr=search(list, first, last);
+	if (ptr==NULL){
+		printf("%s %s does not exist", first, last); 
+		return list;
+	}
+	int height=ptr->height;
+	list=removePerson(list, first, last);
+	list=add(list, first, last, height, weight);
+	return list;
+}
